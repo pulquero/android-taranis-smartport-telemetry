@@ -76,14 +76,6 @@ class PreferenceManager(context: Context) {
         sharedPreferences.edit().putInt("map_type", mapType).apply()
     }
 
-    fun isSendDataEnabled(): Boolean {
-        return sharedPreferences.getBoolean("send_telemetry_data", false)
-    }
-
-    fun isSendDataDialogShown(): Boolean {
-        return sharedPreferences.contains("send_telemetry_data")
-    }
-
     fun getModel(): String {
         return sharedPreferences.getString("model", "") ?: ""
     }

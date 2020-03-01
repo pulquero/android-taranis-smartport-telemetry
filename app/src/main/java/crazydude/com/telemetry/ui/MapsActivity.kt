@@ -37,7 +37,6 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.maps.android.SphericalUtil
 import com.hoho.android.usbserial.driver.UsbSerialPort
 import com.hoho.android.usbserial.driver.UsbSerialProber
@@ -96,7 +95,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, DataDecoder.Listen
     private lateinit var sensorsConverters: HashMap<String, Converter>
 
     private lateinit var preferenceManager: PreferenceManager
-    private lateinit var firebaseAnalytics: FirebaseAnalytics
 
     private var mapType = GoogleMap.MAP_TYPE_NORMAL
 
@@ -172,8 +170,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, DataDecoder.Listen
             Pair(PreferenceManager.sensors.elementAt(6).name, altitude)
         )
 
-        firebaseAnalytics = FirebaseAnalytics.getInstance(this)
-
         settingsButton.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
@@ -223,8 +219,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, DataDecoder.Listen
         mapFragment.getMapAsync(this)
 
         startDataService()
-
-        checkAppInstallDate()
     }
 
     private fun showAndCopyCurrentGPSLocation() {
@@ -252,31 +246,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, DataDecoder.Listen
             } catch (e: ActivityNotFoundException) {
                 Toast.makeText(this, "Cannot build directions", Toast.LENGTH_LONG).show()
             }
-        }
-    }
-
-    private fun checkAppInstallDate() {
-        val installTime = packageManager.getPackageInfo(packageName, 0).firstInstallTime
-        val delta = System.currentTimeMillis() - installTime
-
-        if (delta / 1000 / 60 / 60 / 24 > 3 && !preferenceManager.isYoutubeChannelShown()) {
-            AlertDialog.Builder(this)
-                .setTitle("Thanks for using my application")
-                .setMessage(
-                    "Thanks for using my application. As it's does not contain any ads and completely free, " +
-                            "you can help me by subscribing to my youtube channel"
-                )
-                .setPositiveButton("Subscribe") { dialog: DialogInterface?, i: Int ->
-                    startActivity(
-                        Intent(
-                            Intent.ACTION_VIEW,
-                            Uri.parse("https://www.youtube.com/channel/UCjAhODF0Achhc1fynxEXQLg?view_as=subscriber&sub_confirmation=1")
-                        )
-                    )
-                }
-                .setNegativeButton("Cancel", null)
-                .setOnDismissListener { preferenceManager.setYoutubeShown() }
-                .show()
         }
     }
 
@@ -715,11 +684,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, DataDecoder.Listen
             if (requestCode == REQUEST_LOCATION_PERMISSION) {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     map?.isMyLocationEnabled = true
-                    checkSendDataDialogShown()
                 } else {
                     AlertDialog.Builder(this)
                         .setMessage("Location permission is needed in order to discover BLE devices and show your location on map")
-                        .setOnDismissListener { checkSendDataDialogShown() }
                         .setPositiveButton("OK", null)
                         .show()
                 }
@@ -843,7 +810,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, DataDecoder.Listen
         map?.mapType = mapType
         if (checkCallingOrSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             map?.isMyLocationEnabled = true
-            checkSendDataDialogShown()
         } else {
             ActivityCompat.requestPermissions(
                 this,
@@ -864,35 +830,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, DataDecoder.Listen
             if (it == GoogleMap.OnCameraMoveStartedListener.REASON_GESTURE) {
                 followMode = false
             }
-        }
-    }
-
-    private fun checkSendDataDialogShown() {
-        if (!preferenceManager.isSendDataDialogShown()) {
-            firebaseAnalytics.logEvent("send_data_dialog_shown", null)
-            val dialog = AlertDialog.Builder(this)
-                .setMessage(
-                    Html.fromHtml(
-                        "You can enable telemetry data sharing. Telemetry data sharing sends data to <a href='https://uavradar.org'>https://uavradar.org</a> at which" +
-                                "you can watch for other aicraft flights (just like flightradar24, but for UAV). You can assign" +
-                                " your callsign and your UAV model in the settings which will be used as your aircraft info. " +
-                                "Data sent when you arm your UAV and have valid 3D GPS Fix"
-                    )
-                )
-                .setPositiveButton("Enable") { _, i ->
-                    preferenceManager.setTelemetrySendingEnabled(true)
-                    firebaseAnalytics.setUserProperty("telemetry_sharing_enable", "true")
-                    firebaseAnalytics.logEvent("telemetry_sharing_enabled", null)
-                }
-                .setNegativeButton("Disable") { _, i ->
-                    preferenceManager.setTelemetrySendingEnabled(false)
-                    firebaseAnalytics.setUserProperty("telemetry_sharing_enable", "false")
-                    firebaseAnalytics.logEvent("telemetry_sharing_disabled", null)
-                }
-                .setCancelable(false)
-                .show()
-            dialog.findViewById<TextView>(android.R.id.message)?.movementMethod =
-                LinkMovementMethod.getInstance()
         }
     }
 
