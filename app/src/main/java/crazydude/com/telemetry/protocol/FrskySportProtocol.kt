@@ -45,6 +45,8 @@ class FrSkySportProtocol : Protocol {
         const val PITCH_SENSOR = 0x0430
         const val ROLL_SENSOR = 0x0440
         const val AIRSPEED_SENSOR = 0x0A00
+        const val BF_PITCH_SENSOR = 0x5230
+        const val BF_ROLL_SENSOR = 0x5240
 
         private val TAG: String = "FrSky Protocol"
     }
@@ -214,7 +216,7 @@ class FrSkySportProtocol : Protocol {
                             )
                         )
                     }
-                    PITCH_SENSOR -> {
+                    PITCH_SENSOR, BF_PITCH_SENSOR -> {
                         //Log.d(TAG, "Pitch: $rawData")
                         dataDecoder.decodeData(
                             Protocol.Companion.TelemetryData(
@@ -223,7 +225,7 @@ class FrSkySportProtocol : Protocol {
                             )
                         )
                     }
-                    ROLL_SENSOR -> {
+                    ROLL_SENSOR, BF_ROLL_SENSOR -> {
                         //Log.d(TAG, "Roll: $rawData")
                         dataDecoder.decodeData(
                             Protocol.Companion.TelemetryData(
@@ -238,7 +240,10 @@ class FrSkySportProtocol : Protocol {
                         )
                     }
                     else -> {
-                        Log.d(TAG, "Unknown packet" + buffer.contentToString())
+                        Log.d(TAG, "Unknown sensor" + buffer.contentToString())
+                        dataDecoder.decodeData(
+                            Protocol.Companion.TelemetryData(OTHER, rawData)
+                        )
                     }
                 }
             }

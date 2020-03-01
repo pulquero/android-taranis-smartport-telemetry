@@ -30,6 +30,7 @@ abstract class Protocol(val dataDecoder: DataDecoder) {
         const val ATTITUDE = 21
         const val GPS_ORIGIN_LATITUDE = 22
         const val GPS_ORIGIN_LONGITUDE = 23
+        const val OTHER = 0xFF
 
         class TelemetryData(val telemetryType: Int, val data: Int, val rawData: ByteArray? = null) {
             override fun equals(other: Any?): Boolean {

@@ -220,6 +220,9 @@ class DataService : Service(), DataDecoder.Listener {
         dataListener?.onAirSpeed(speed)
     }
 
+    override fun onOtherData() {
+        dataListener?.onOtherData()
+    }
     override fun onSuccessDecode() {
         dataListener?.onSuccessDecode()
     }

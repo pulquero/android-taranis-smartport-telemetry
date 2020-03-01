@@ -11,7 +11,6 @@ class FrskyDataDecoder(listener: Listener) : DataDecoder(listener) {
     private var longitude: Double = 0.0
 
     override fun decodeData(data: Protocol.Companion.TelemetryData) {
-        var decoded = true
         when (data.telemetryType) {
             Protocol.FUEL -> {
                 listener.onFuelData(data.data)
@@ -156,12 +155,10 @@ class FrskyDataDecoder(listener: Listener) : DataDecoder(listener) {
                 listener.onGPSState(data.data, true)
             }
             else -> {
-                decoded = false
+                listener.onOtherData()
             }
         }
 
-        if (decoded) {
-            listener.onSuccessDecode()
-        }
+        listener.onSuccessDecode()
     }
 }

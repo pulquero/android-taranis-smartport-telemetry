@@ -970,6 +970,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, DataDecoder.Listen
 
     private fun switchToConnectedState() {
         replayButton.visibility = View.GONE
+        mode.text = "Connected"
         connectButton.text = getString(R.string.disconnect)
         connectButton.isEnabled = true
         connectButton.setOnClickListener {
@@ -1032,6 +1033,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, DataDecoder.Listen
                 }
             }
         }
+    }
+
+    override fun onOtherData() {
+
     }
 
     override fun onSuccessDecode() {
